@@ -1,11 +1,17 @@
 package com.imeee.crazy;
 
+import android.annotation.TargetApi;
+import android.app.AlarmManager;
 import android.app.Application;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.os.Build;
+import android.os.SystemClock;
 import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
+import com.imeee.crazy.BroadcastReceiver.MonitorReceiver;
 import com.imeee.crazy.api.HttpClient;
 import com.imeee.crazy.dao.DaoMaster;
 import com.imeee.crazy.dao.DaoSession;
@@ -33,6 +39,9 @@ import java.util.List;
  */
 
 public class BaseApp extends Application {
+
+    /* use as the loop mark of notifyId */
+    private static final int MAX_NOTIFY_ID = 100;
 
     private Rank newRank = null;
     private Rank oldRank = null;
@@ -91,8 +100,11 @@ public class BaseApp extends Application {
         getRankDiffHistory();
 
 
+        startAlarmService();
+        /*
         Intent intent = new Intent(this, MonitorService.class);
         startService(intent);
+        */
     }
 
 
@@ -307,8 +319,29 @@ public class BaseApp extends Application {
         return new Rank(emptyRecordList, emptyRecordList);
     }
 
+
     public int getNotifyId(){
-        return notifyId++;
+        if(notifyId > MAX_NOTIFY_ID){
+            notifyId = 0;
+        } else {
+            notifyId += 1;
+        }
+
+        return notifyId;
     }
 
+    @TargetApi(19)
+    private void startAlarmService(){
+        long triggerAtTime = SystemClock.elapsedRealtime() + 100;
+        Intent i = new Intent(this, MonitorReceiver.class);
+        i.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
+
+        PendingIntent pi = PendingIntent.getBroadcast(this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
+        AlarmManager manager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        if(Build.VERSION.SDK_INT >= 19){
+            manager.setExact(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtTime, pi);
+        } else {
+            manager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtTime, pi);
+        }
+    }
 }
