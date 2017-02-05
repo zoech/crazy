@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rl_top"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/mainBg"
+    tools:context=".activity.HomeActivity">
+
+<!--
+    <include layout="@layout/topbar_time"
+        android:id="@+id/topPanel"></include> -->
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/topPannelBg"
+        android:padding="10dip"
+        android:layout_alignParentTop="true"
+        android:id="@+id/topPanel">
+
+        <TextView
+            android:id="@+id/tv_reference_date_topbar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_alignParentLeft="true"
+            android:textColor="@color/white"
+            android:text="1990-08-20"/>
+
+        <TextView
+            android:id="@+id/tv_update_date_topbar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_alignParentRight="true"
+            android:textColor="@color/white"
+            android:text="1990-08-20"/>
+
+
+    </RelativeLayout>
+
+    <android.support.design.widget.TabLayout
+        android:id="@+id/tl_tab"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/tabLayoutBg"
+        android:layout_alignParentBottom="true" />
+
+    <android.support.v4.view.ViewPager
+        android:id="@+id/viewpager"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/tl_tab"
+        android:layout_below="@id/topPanel">
+
+        <!--
+        <android.support.v4.view.PagerTabStrip
+            android:id="@+id/tabstrip"
+            android:layout_width="match_parent"
+            android:layout_height= "@dimen/app_tab_height"
+            android:gravity="center" />
+        -->
+    </android.support.v4.view.ViewPager>
+
+</RelativeLayout>
