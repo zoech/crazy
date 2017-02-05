@@ -2,6 +2,7 @@ package com.imeee.crazy.service;
 
 import android.annotation.TargetApi;
 import android.app.AlarmManager;
+import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -41,14 +42,32 @@ import retrofit2.Response;
  * Created by zoey on 2/4/17.
  */
 
-public class MonitorService extends Service {
+public class MonitorService extends IntentService {
+
 
     private static int notifyId = 0;
+
+    private Intent intent = null;
+
+    public MonitorService(){
+        super("MonitorService");
+    }
+
+    @TargetApi(19)
+    @Override
+    protected void onHandleIntent(Intent intent){
+        this.intent = intent;
+        setNextAlarm();
+        getRank();
+    }
+
+    /*
     @Override
     public IBinder onBind(Intent intent) {
         return null;
     }
-
+    */
+/*
     @TargetApi(19)
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -61,54 +80,18 @@ public class MonitorService extends Service {
                 getRank();
             }
         }).start();
-        AlarmManager manager = (AlarmManager) getSystemService(ALARM_SERVICE);
-        long interval = ((BaseApp)getApplication()).getMonitorInterval();
-        long triggerAtTime = 0;
 
-        Calendar currentTime = Calendar.getInstance();
-        int currentHour = currentTime.get(Calendar.HOUR_OF_DAY);
-
-        if(currentHour > 1 && currentHour < 5){
-            long intervalNight = ((BaseApp)getApplication()).getMonitorIntervalNight();
-
-            Calendar fiveOclock = Calendar.getInstance();
-            Calendar nextTime = Calendar.getInstance();
-
-            fiveOclock.set(Calendar.HOUR_OF_DAY, 5);
-            fiveOclock.set(Calendar.MINUTE,0);
-            fiveOclock.set(Calendar.MILLISECOND,0);
-
-            nextTime.add(Calendar.MILLISECOND, (int)intervalNight);
-
-            if(nextTime.after(fiveOclock)){
-                // next time is late than 5 o'clock
-                long intervalTmp = fiveOclock.getTimeInMillis() - currentTime.getTimeInMillis();
-                triggerAtTime = SystemClock.elapsedRealtime() + intervalTmp;
-            } else {
-                triggerAtTime = SystemClock.elapsedRealtime() + intervalNight;
-            }
-        } else {
-            triggerAtTime = SystemClock.elapsedRealtime() + interval;
-        }
-
-
-        //triggerAtTime = SystemClock.elapsedRealtime() + interval;
-        Intent i = new Intent(this, MonitorReceiver.class);
-        i.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
-        PendingIntent pi = PendingIntent.getBroadcast(this, 0, i, 0);
-
-        if(Build.VERSION.SDK_INT >= 19){
-            manager.setExact(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtTime, pi);
-        } else {
-            manager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtTime, pi);
-        }
+        setNextAlarm();
 
         //manager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtTime, pi);
         return super.onStartCommand(intent, flags, startId);
     }
-
+*/
 
     private void getRank(){
+
+        Log.i("------new---", "executed at " + new Date().
+                toString());
 
         final BaseApp app = (BaseApp)getApplication();
         if(app == null){
@@ -149,12 +132,12 @@ public class MonitorService extends Service {
 
                         app.setNewRank(newRank);
                         app.setRankDiffer(rankDiffer);
+                        // save the new rank to preference cache
+                        app.getRankPref().setOldRank(JSON.toJSONString(newRank));
 
 
                         if(rankDiffer.getIsChg()){
                             Differ differ = app.saveDiffToDb(rankDiffer);
-                            // save the new rank to preference cache
-                            app.getRankPref().setOldRank(JSON.toJSONString(newRank));
 
 
                             // show a notifycation
@@ -177,6 +160,8 @@ public class MonitorService extends Service {
                         //alertDilog("network info", "the code of return json is not 200");
                     }
                 }
+
+                completeWakeFull();
             } // end of onResponse
 
             @Override
@@ -184,6 +169,7 @@ public class MonitorService extends Service {
                 Log.i("+++", t.toString());
                 t.printStackTrace();
 
+                completeWakeFull();
                 //alertDilog("network info", "network failed, check your network");
 
             }
@@ -229,6 +215,56 @@ public class MonitorService extends Service {
         //Log.i("---- notify, notify id", String.valueOf(notifyId));
 
         //notifyId += 1;
+    }
+
+
+    @TargetApi(19)
+    public void setNextAlarm(){
+        AlarmManager manager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        long triggerAtTime = 0;
+
+        Calendar currentTime = Calendar.getInstance();
+        int currentHour = currentTime.get(Calendar.HOUR_OF_DAY);
+
+        if(currentHour > 1 && currentHour < 5){
+            long intervalNight = ((BaseApp)getApplication()).getMonitorIntervalNight();
+
+            Calendar fiveOclock = Calendar.getInstance();
+            Calendar nextTime = Calendar.getInstance();
+
+            fiveOclock.set(Calendar.HOUR_OF_DAY, 5);
+            fiveOclock.set(Calendar.MINUTE,0);
+            fiveOclock.set(Calendar.MILLISECOND,0);
+
+            nextTime.add(Calendar.MILLISECOND, (int)intervalNight);
+
+            if(nextTime.after(fiveOclock)){
+                // next time is late than 5 o'clock
+                long intervalTmp = fiveOclock.getTimeInMillis() - currentTime.getTimeInMillis();
+                triggerAtTime = SystemClock.elapsedRealtime() + intervalTmp;
+            } else {
+                triggerAtTime = SystemClock.elapsedRealtime() + intervalNight;
+            }
+        } else {
+            long interval = ((BaseApp)getApplication()).getMonitorInterval();
+            triggerAtTime = SystemClock.elapsedRealtime() + interval;
+        }
+
+
+        Intent i = new Intent(this, MonitorReceiver.class);
+        i.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
+        PendingIntent pi = PendingIntent.getBroadcast(this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        if(Build.VERSION.SDK_INT >= 19){
+            manager.setExact(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtTime, pi);
+        } else {
+            manager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtTime, pi);
+        }
+    }
+
+
+    public void completeWakeFull(){
+        MonitorReceiver.completeWakefulIntent(this.intent);
     }
 
 }
