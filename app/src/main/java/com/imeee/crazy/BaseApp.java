@@ -204,7 +204,7 @@ public class BaseApp extends Application {
         }
 
 
-        Log.i("++++db RecordDiffer id", String.valueOf(rankDiffer.getWeekDiffer().getDiffList().get(4).getId()));
+        //Log.i("++++db RecordDiffer id", String.valueOf(rankDiffer.getWeekDiffer().getDiffList().get(4).getId()));
 
 
 

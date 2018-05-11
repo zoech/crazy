@@ -223,6 +223,7 @@ public class MonitorService extends IntentService {
         AlarmManager manager = (AlarmManager) getSystemService(ALARM_SERVICE);
         long triggerAtTime = 0;
 
+        /*
         Calendar currentTime = Calendar.getInstance();
         int currentHour = currentTime.get(Calendar.HOUR_OF_DAY);
 
@@ -248,7 +249,10 @@ public class MonitorService extends IntentService {
         } else {
             long interval = ((BaseApp)getApplication()).getMonitorInterval();
             triggerAtTime = SystemClock.elapsedRealtime() + interval;
-        }
+        }*/
+
+        long interval = ((BaseApp)getApplication()).getMonitorInterval();
+        triggerAtTime = SystemClock.elapsedRealtime() + interval;
 
 
         Intent i = new Intent(this, MonitorReceiver.class);

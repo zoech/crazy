@@ -49,8 +49,10 @@ public class RankDiff {
 
     public static DiffList listDiff(List<Rank.Record> oldRank,
                                     List<Rank.Record> newRank){
-        if(newRank == null || newRank.isEmpty()){
-            return null;
+        //if(newRank == null || newRank.isEmpty()){
+        if(newRank == null){
+            //return null;
+            newRank = new ArrayList();
         }
         DiffList diffList = new DiffList(null, false);
         List<RecordDiffer> differList = new ArrayList<>();

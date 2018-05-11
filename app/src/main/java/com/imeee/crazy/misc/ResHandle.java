@@ -27,6 +27,14 @@ public class ResHandle {
         List<Rank.Record> allData = new ArrayList<>();
         List<Rank.Record> weekData = new ArrayList<>();
 
+        if(allDataArray == null){
+            allDataArray = new JSONArray();
+        }
+
+        if(weekDataArray == null){
+            weekDataArray = new JSONArray();
+        }
+
         for (int rank = 0; rank < allDataArray.size(); ++rank){
             int score = 0;
             int id = 0;
